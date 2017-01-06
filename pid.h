@@ -34,20 +34,34 @@ typedef struct
 	float P;
 	float I;
 	float D;
-	float Pm;
-	float Im;
-	float Dm;
 	float out;
+	float Pmax;
+	float Imax;
+	float Dmax;
 	float outmax;
-	float kp_offset;
-	float ki_offset;
-	float kd_offset;
-	void (*Calc)(struct PID_t *pid);
-	void (*Reset)(struct PID_t *pid);
 }PID_t;
 
+void PID_Config(PID_t* pid, float kp, float ki, float kd, float Pmax, float Imax, float Dmax, float outmax);
 void PID_Reset(PID_t *pid);
 void PID_Calc(PID_t *pid);
+
+#define PID(KP,KI,KD,PM,IM,DM,OM) \
+{\
+	.ref = 0,\
+	.fdb = 0,\
+	.err = {0,0},\
+	.kp = KP,\
+	.ki = KI,\
+	.kd = KD,\
+	.P = 0,\
+	.I = 0,\
+	.D = 0,\
+	.out = 0,\
+	.Pmax = PM,\
+	.Imax = IM,\
+	.Dmax = DM,\
+	.outmax = OM,\
+}\
 
 #ifdef __cplusplus
 }

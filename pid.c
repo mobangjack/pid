@@ -16,28 +16,41 @@
  
 #include "pid.h"
 
+void PID_Config(PID_t* pid, float kp, float ki, float kd, float Pmax, float Imax, float Dmax, float outmax)
+{
+	pid->kp = kp;
+	pid->ki = ki;
+	pid->kd = kd;
+	pid->Pmax = Pmax;
+	pid->Imax = Imax;
+	pid->Dmax = Dmax;
+	pid->outmax = outmax;
+}
+
 void PID_Reset(PID_t *pid)
 {
-	pid->err[0] = 0;
-	pid->err[1] = 0;
 	pid->P = 0;
 	pid->I = 0;
 	pid->D = 0;
+	pid->ref = 0;
+	pid->fdb = 0;
 	pid->out = 0;
+	pid->err[0] = 0;
+	pid->err[1] = 0;
 }
 
 #define LIMIT(val,min,max) (val=val>max?max:(val<min?min:val))
 void PID_Calc(PID_t *pid)
 {
 	pid->err[1] = pid->ref - pid->fdb; // calculate error
-	pid->P = (pid->kp + pid->kp_offset) * pid->err[1]; // P
-	LIMIT(pid->P, -pid->Pm, pid->Pm);
-	pid->I+= (pid->ki + pid->ki_offset) * pid->err[1]; // I
-	LIMIT(pid->I, -pid->Im, pid->Im);
-	pid->D = (pid->kd + pid->kd_offset) * (pid->err[1] - pid->err[0]); // D
-	LIMIT(pid->D, -pid->Dm, pid->Dm);
+	pid->P = pid->kp * pid->err[1]; // P
+	LIMIT(pid->P, -pid->Pmax, pid->Pmax); // limit P
+	pid->I+= pid->ki * pid->err[1]; // I
+	LIMIT(pid->I, -pid->Imax, pid->Imax); // limit I
+	pid->D = pid->kd * (pid->err[1] - pid->err[0]); // D
+	LIMIT(pid->D, -pid->Dmax, pid->Dmax); // limit D
 	pid->out = pid->P + pid->I + pid->D; // output
-	LIMIT(pid->out, -pid->outmax, pid->outmax);
+	LIMIT(pid->out, -pid->outmax, pid->outmax); // limit output
 	pid->err[0] = pid->err[1]; // save the last err
 }
 
